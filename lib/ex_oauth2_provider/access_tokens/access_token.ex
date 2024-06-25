@@ -1,18 +1,13 @@
 defmodule ExOauth2Provider.AccessTokens.AccessToken do
   @moduledoc """
   Handles the Ecto schema for access token.
-
   ## Usage
-
   Configure `lib/my_project/oauth_access_tokens/oauth_access_token.ex` the following way:
-
       defmodule MyApp.OauthAccessTokens.OauthAccessToken do
         use Ecto.Schema
         use ExOauth2Provider.AccessTokens.AccessToken
-
         schema "oauth_access_tokens" do
           access_token_fields()
-
           timestamps()
         end
       end
@@ -24,19 +19,20 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
   @doc false
   def attrs() do
     [
-      {:token, :string, [], null: false},
+      {:token, :string},
       {:refresh_token, :string},
       {:expires_in, :integer},
       {:revoked_at, :utc_datetime},
+      {:session, :string, default: ""},
       {:scopes, :string},
-      {:previous_refresh_token, :string, [default: ""], null: false}
+      {:previous_refresh_token, :string, default: ""},
+      {:resource_owner_id, :string}
     ]
   end
 
   @doc false
   def assocs() do
     [
-      {:belongs_to, :resource_owner, :users},
       {:belongs_to, :application, :applications}
     ]
   end
@@ -45,6 +41,7 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
   def indexes() do
     [
       {:token, true},
+     {:session, true},
       {:refresh_token, true}
     ]
   end
@@ -88,7 +85,7 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
       is_nil(Changeset.get_field(changeset, :application)) ->
         validate_resource_owner(changeset)
 
-      is_nil(Changeset.get_field(changeset, :resource_owner)) ->
+      is_nil(Changeset.get_field(changeset, :resource_owner_id)) ->
         validate_application(changeset)
 
       true ->
@@ -106,8 +103,7 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
 
   defp validate_resource_owner(changeset) do
     changeset
-    |> Changeset.validate_required([:resource_owner])
-    |> Changeset.assoc_constraint(:resource_owner)
+    |> Changeset.validate_required([:resource_owner_id])
   end
 
   defp put_token(changeset, config) do
@@ -123,11 +119,10 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
     opts =
       changeset
       |> Changeset.apply_changes()
-      |> Map.take([:resource_owner, :scopes, :application, :expires_in])
+      |> Map.take([:resource_owner_id, :scopes, :application, :expires_in])
       |> Map.put(:created_at, created_at)
       |> Enum.into([])
 
-    opts = Keyword.put(opts, :resource_owner_id, resource_owner_id(opts[:resource_owner]))
 
     case Config.access_token_generator(config) do
       nil              -> Utils.generate_token(opts)
@@ -135,8 +130,6 @@ defmodule ExOauth2Provider.AccessTokens.AccessToken do
     end
   end
 
-  defp resource_owner_id(%{id: id}), do: id
-  defp resource_owner_id(_), do: nil
 
   defp put_previous_refresh_token(changeset, nil), do: changeset
   defp put_previous_refresh_token(changeset, refresh_token),

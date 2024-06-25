@@ -1,4 +1,4 @@
-defmodule ExOauth2Provider.Token.Password do
+defmodule ExOauth2Provider.Token.ApiKey do
   @moduledoc """
   Functions for dealing with refresh token strategy.
   """
@@ -12,15 +12,14 @@ defmodule ExOauth2Provider.Token.Password do
   }
 
   @doc """
-  Will grant access token by password authentication.
+  Will grant access token by api key authentication.
 
   ## Example
       ExOauth2Provider.Token.grant(%{
-        "grant_type" => "password",
+        "grant_type" => "api_key",
         "client_id" => "Jf5rM8hQBc",
         "client_secret" => "secret",
-        "username" => "testuser@example.com",
-        "password" => "secret"
+        "key" => "secret",
       }, otp_app: :my_app)
 
   ## Response
@@ -28,9 +27,9 @@ defmodule ExOauth2Provider.Token.Password do
       {:error, %{error: error, error_description: description}, http_status}
   """
   @spec grant(map(), keyword()) :: {:ok, map()} | {:error, map(), atom()}
-  def grant(%{"grant_type" => "password"} = request, config \\ []) do
+  def grant(%{"grant_type" => "api_key"} = request, config \\ []) do
     {:ok, %{request: request}}
-    |> get_password_auth_method(config)
+    |> get_api_key_method(config)
     |> load_resource_owner()
     |> Utils.load_client(config)
     |> set_defaults()
@@ -39,9 +38,9 @@ defmodule ExOauth2Provider.Token.Password do
     |> Response.response(config)
   end
 
-  defp get_password_auth_method({:ok, params}, config) do
-    case Config.password_auth(config) do
-      {module, method} -> {:ok, Map.put(params, :password_auth, {module, method})}
+  defp get_api_key_method({:ok, params}, config) do
+    case Config.api_key_auth(config) do
+      {module, method} -> {:ok, Map.put(params, :api_key_auth, {module, method})}
       _ -> Error.add_error({:ok, params}, Error.unsupported_grant_type())
     end
   end
@@ -51,11 +50,11 @@ defmodule ExOauth2Provider.Token.Password do
   defp load_resource_owner(
          {:ok,
           %{
-            password_auth: {module, method},
-            request: %{"username" => username, "password" => password}
+            api_key_auth: {module, method},
+            request: %{"key" => key, "secret" => secret}
           } = params}
        ) do
-    case apply(module, method, [username, password]) do
+    case apply(module, method, [key, secret]) do
       {:ok, resource_owner} ->
         {:ok, Map.put(params, :resource_owner, resource_owner)}
 

@@ -3,12 +3,13 @@ defmodule ExOauth2Provider.Config do
 
   @spec repo(keyword()) :: module()
   def repo(config) do
-    get(config, :repo) || raise """
+    get(config, :repo) ||
+      raise """
       No `:repo` found in ExOauth2Provider configuration.
 
       Please set up the repo in your configuration:
 
-      config #{inspect Keyword.get(config, :otp_app, :ex_oauth2_provider)}, ExOauth2Provider,
+      config #{inspect(Keyword.get(config, :otp_app, :ex_oauth2_provider))}, ExOauth2Provider,
         repo: MyApp.Repo
       """
   end
@@ -21,7 +22,9 @@ defmodule ExOauth2Provider.Config do
     app =
       config
       |> Keyword.get(:otp_app)
-      |> Kernel.||(raise "No `:otp_app` found in provided configuration. Please pass `:otp_app` in configuration.")
+      |> Kernel.||(
+        raise "No `:otp_app` found in provided configuration. Please pass `:otp_app` in configuration."
+      )
       |> app_base()
 
     Module.concat([app, context, module])
@@ -41,7 +44,7 @@ defmodule ExOauth2Provider.Config do
 
   defp get_oauth_struct(config, name, namespace \\ "oauth") do
     context = Macro.camelize("#{namespace}_#{name}s")
-    module  = Macro.camelize("#{namespace}_#{name}")
+    module = Macro.camelize("#{namespace}_#{name}")
 
     config
     |> get(name)
@@ -107,6 +110,16 @@ defmodule ExOauth2Provider.Config do
   def password_auth(config),
     do: get(config, :password_auth)
 
+  # Password cert auth method to use. Disabled by default. When set, it'll enable
+  # password cert auth strategy. Set config as:
+  # `password_cert_auth: {MyModule, :my_auth_method}`
+  @spec password_auth(keyword()) :: {atom(), atom()} | nil
+  def password_cert_auth(config),
+    do: get(config, :password_cert_auth)
+
+  def api_key_auth(config),
+    do: get(config, :api_key_auth)
+
   @spec refresh_token_revoked_on_use?(keyword()) :: boolean()
   def refresh_token_revoked_on_use?(config),
     do: get(config, :revoke_refresh_token_on_use, false)
@@ -117,7 +130,7 @@ defmodule ExOauth2Provider.Config do
   # wise to keep this enabled.
   @spec force_ssl_in_redirect_uri?(keyword()) :: boolean()
   def force_ssl_in_redirect_uri?(config),
-    do: get(config, :force_ssl_in_redirect_uri, unquote(Mix.env != :dev))
+    do: get(config, :force_ssl_in_redirect_uri, unquote(Mix.env() != :dev))
 
   # Use a custom access token generator
   @spec access_token_generator(keyword()) :: {atom(), atom()} | nil
@@ -141,18 +154,20 @@ defmodule ExOauth2Provider.Config do
     |> get_from_global_env(key)
     |> case do
       :not_found -> value
-      value      -> value
+      value -> value
     end
   end
 
   defp get_from_config(config, key), do: Keyword.get(config, key, :not_found)
 
   defp get_from_app_env(:not_found, nil, _key), do: :not_found
+
   defp get_from_app_env(:not_found, otp_app, key) do
     otp_app
     |> Application.get_env(ExOauth2Provider, [])
     |> Keyword.get(key, :not_found)
   end
+
   defp get_from_app_env(value, _otp_app, _key), do: value
 
   defp get_from_global_env(:not_found, key) do
@@ -160,5 +175,6 @@ defmodule ExOauth2Provider.Config do
     |> Application.get_env(ExOauth2Provider, [])
     |> Keyword.get(key, :not_found)
   end
+
   defp get_from_global_env(value, _key), do: value
 end

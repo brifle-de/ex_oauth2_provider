@@ -1,4 +1,4 @@
-defmodule ExOauth2Provider.Token.Password do
+defmodule ExOauth2Provider.Token.PasswordCert do
   @moduledoc """
   Functions for dealing with refresh token strategy.
   """
@@ -28,7 +28,7 @@ defmodule ExOauth2Provider.Token.Password do
       {:error, %{error: error, error_description: description}, http_status}
   """
   @spec grant(map(), keyword()) :: {:ok, map()} | {:error, map(), atom()}
-  def grant(%{"grant_type" => "password"} = request, config \\ []) do
+  def grant(%{"grant_type" => "password_cert"} = request, config \\ []) do
     {:ok, %{request: request}}
     |> get_password_auth_method(config)
     |> load_resource_owner()
@@ -40,9 +40,12 @@ defmodule ExOauth2Provider.Token.Password do
   end
 
   defp get_password_auth_method({:ok, params}, config) do
-    case Config.password_auth(config) do
-      {module, method} -> {:ok, Map.put(params, :password_auth, {module, method})}
-      _ -> Error.add_error({:ok, params}, Error.unsupported_grant_type())
+    case Config.password_cert_auth(config) do
+      {module, method} ->
+        {:ok, Map.put(params, :password_cert_auth, {module, method})}
+
+      _ ->
+        Error.add_error({:ok, params}, Error.unsupported_grant_type())
     end
   end
 
@@ -51,11 +54,17 @@ defmodule ExOauth2Provider.Token.Password do
   defp load_resource_owner(
          {:ok,
           %{
-            password_auth: {module, method},
-            request: %{"username" => username, "password" => password}
+            password_cert_auth: {module, method},
+            request: %{
+              "username" => username,
+              "password" => password,
+              "key_hash" => key_hash,
+              "challenge" => challenge,
+              "challenge_sign" => challenge_sign
+            }
           } = params}
        ) do
-    case apply(module, method, [username, password]) do
+    case apply(module, method, [username, password, key_hash, challenge, challenge_sign]) do
       {:ok, resource_owner} ->
         {:ok, Map.put(params, :resource_owner, resource_owner)}
 

@@ -82,11 +82,12 @@ defmodule ExOauth2Provider.AccessTokens do
       nil
   """
   @spec get_token_for(Schema.t(), Application.t(), binary(), keyword()) :: AccessToken.t() | nil
-  def get_token_for(resource_owner, application, scopes, config \\ []) do
+  def get_token_for(resource_owner, application, scopes, session, config \\ []) do
     config
     |> Config.access_token()
     |> scope_belongs_to(:resource_owner_id, resource_owner)
     |> scope_belongs_to(:application_id, application)
+    |> scope_belongs_to(:session, session)
     |> load_matching_token_for(application, scopes, config)
   end
 
@@ -102,11 +103,12 @@ defmodule ExOauth2Provider.AccessTokens do
       nil
   """
   @spec get_application_token_for(Application.t(), binary(), keyword()) :: AccessToken.t() | nil
-  def get_application_token_for(application, scopes, config \\ []) do
+  def get_application_token_for(application, scopes, session, config \\ []) do
     config
     |> Config.access_token()
     |> scope_belongs_to(:resource_owner_id, nil)
     |> scope_belongs_to(:application_id, application)
+    |> scope_belongs_to(:session, session)
     |> load_matching_token_for(application, scopes, config)
   end
 
@@ -180,9 +182,15 @@ defmodule ExOauth2Provider.AccessTokens do
   def create_token(resource_owner, attrs \\ %{}, config \\ []) do
     config
     |> Config.access_token()
-    |> struct(resource_owner: resource_owner)
+    |> struct()
+    |> put_resource_owner(resource_owner)
     |> put_application(attrs)
+    |> put_session(attrs)
     |> do_create_token(attrs, config)
+  end
+
+  defp put_resource_owner(access_token, resource_owner) do
+    %{access_token | resource_owner_id: resource_owner.id}
   end
 
   defp put_application(access_token, attrs) do
@@ -192,9 +200,15 @@ defmodule ExOauth2Provider.AccessTokens do
     end
   end
 
+  defp put_session(access_token, attrs) do
+    case Map.get(attrs, :session) do
+      nil         -> access_token
+      session -> %{access_token | session: session}
+    end
+  end
+
   defp do_create_token(access_token, attrs, config) do
     attrs = Map.merge(%{expires_in: Config.access_token_expires_in(config)}, attrs)
-
     access_token
     |> AccessToken.changeset(attrs, config)
     |> Config.repo(config).insert()
@@ -248,11 +262,12 @@ defmodule ExOauth2Provider.AccessTokens do
   @spec get_by_previous_refresh_token_for(AccessToken.t(), keyword()) :: AccessToken.t() | nil
   def get_by_previous_refresh_token_for(%{previous_refresh_token: nil}, _config), do: nil
   def get_by_previous_refresh_token_for(%{previous_refresh_token: ""}, _config), do: nil
-  def get_by_previous_refresh_token_for(%{previous_refresh_token: previous_refresh_token, resource_owner_id: resource_owner_id, application_id: application_id}, config) do
+  def get_by_previous_refresh_token_for(%{previous_refresh_token: previous_refresh_token, session: session, resource_owner_id: resource_owner_id, application_id: application_id}, config) do
     config
     |> Config.access_token()
     |> scope_belongs_to(:application_id, application_id)
     |> where([a], a.resource_owner_id == ^resource_owner_id)
+    |> where([a], a.session == ^session)
     |> where([a], a.refresh_token == ^previous_refresh_token)
     |> limit(1)
     |> Config.repo(config).one()

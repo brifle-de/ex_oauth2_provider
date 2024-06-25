@@ -18,12 +18,9 @@ defmodule ExOauth2Provider.Schema do
         {name, type} ->
           field(name, type)
 
-        {name, type, field_options} ->
-          field(name, type, field_options)
-
-        {name, type, field_options, _migration_options} ->
-          field(name, type, field_options)
-        end)
+        {name, type, defaults} ->
+          field(name, type, defaults)
+      end)
 
       unquote(module).assocs()
       |> unquote(__MODULE__).__assocs_with_queryable__(@config)
@@ -32,14 +29,14 @@ defmodule ExOauth2Provider.Schema do
         {:belongs_to, name, queryable} ->
           belongs_to(name, queryable)
 
-        {:belongs_to, name, queryable, options} ->
-          belongs_to(name, queryable, options)
+        {:belongs_to, name, queryable, defaults} ->
+          belongs_to(name, queryable, defaults)
 
         {:has_many, name, queryable} ->
           has_many(name, queryable)
 
-        {:has_many, name, queryable, options} ->
-          has_many(name, queryable, options)
+        {:has_many, name, queryable, defaults} ->
+          has_many(name, queryable, defaults)
       end)
     end
   end

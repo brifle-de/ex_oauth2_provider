@@ -1,11 +1,8 @@
 # Changelog
 
-## v0.5.7 (2023-08-05)
-
-Requires Elixir 1.12+.
+## v0.5.7 (TBA)
 
 * Permit native application redirect uri
-* Separate Ecto migration and field options to resolve ecto 3.8 deprecation
 
 ## v0.5.6 (2020-01-07)
 

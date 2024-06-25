@@ -1,13 +1,13 @@
 defmodule ExOauth2Provider.Mixfile do
   use Mix.Project
 
-  @version "0.5.7"
+  @version "0.5.6"
 
   def project do
     [
       app: :ex_oauth2_provider,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.8",
       elixirc_paths: elixirc_paths(Mix.env),
       start_permanent: Mix.env == :prod,
       deps: deps(),
@@ -34,16 +34,15 @@ defmodule ExOauth2Provider.Mixfile do
 
   defp deps do
     [
-      {:ecto, "~> 3.10"},
+      {:ecto, "~> 3.0"},
       {:plug, ">= 1.5.0 and < 2.0.0"},
-      {:jason, "~> 1.2"},
 
       # Dev and test dependencies
-      {:credo, "~> 1.5", only: [:dev, :test]},
+      {:credo, "~> 1.1.0", only: [:dev, :test]},
 
-      {:ex_doc, "~> 0.25", only: :dev},
+      {:ex_doc, ">= 0.0.0", only: :dev},
 
-      {:ecto_sql, "~> 3.10", only: :test},
+      {:ecto_sql, "~> 3.0.0", only: :test},
       {:plug_cowboy, "~> 2.0", only: :test},
       {:postgrex, "~> 0.14", only: :test}]
   end

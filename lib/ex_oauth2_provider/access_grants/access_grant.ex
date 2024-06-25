@@ -1,18 +1,13 @@
 defmodule ExOauth2Provider.AccessGrants.AccessGrant do
   @moduledoc """
   Handles the Ecto schema for access grant.
-
   ## Usage
-
   Configure `lib/my_project/oauth_access_grants/oauth_access_grant.ex` the following way:
-
       defmodule MyApp.OauthAccessGrants.OauthAccessGrant do
         use Ecto.Schema
         use ExOauth2Provider.AccessGrants.AccessGrant
-
         schema "oauth_access_grants" do
           access_grant_fields()
-
           timestamps()
         end
       end
@@ -23,18 +18,19 @@ defmodule ExOauth2Provider.AccessGrants.AccessGrant do
   @doc false
   def attrs() do
     [
-      {:token, :string, [], null: false},
-      {:expires_in, :integer, [], null: false},
-      {:redirect_uri, :string, [], null: false},
+      {:token, :string},
+      {:expires_in, :integer},
+      {:redirect_uri, :string},
       {:revoked_at, :utc_datetime},
-      {:scopes, :string}
+      {:scopes, :string},
+      {:resource_owner_id, :string}
     ]
   end
 
   @doc false
   def assocs() do
     [
-      {:belongs_to, :resource_owner, :users},
+
       {:belongs_to, :application, :applications}
     ]
   end

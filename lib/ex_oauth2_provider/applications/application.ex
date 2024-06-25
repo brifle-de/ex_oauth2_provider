@@ -1,37 +1,26 @@
 defmodule ExOauth2Provider.Applications.Application do
   @moduledoc """
   Handles the Ecto schema for application.
-
   ## Usage
-
   Configure `lib/my_project/oauth_applications/oauth_application.ex` the following way:
-
       defmodule MyApp.OauthApplications.OauthApplication do
         use Ecto.Schema
         use ExOauth2Provider.Applications.Application
-
         schema "oauth_applications" do
           application_fields()
-
           timestamps()
         end
       end
-
   ## Application owner
-
   By default the application owner will be will be the `:resource_owner`
   configuration setting. You can override this by overriding the `:owner`
   belongs to association:
-
       defmodule MyApp.OauthApplications.OauthApplication do
         use Ecto.Schema
         use ExOauth2Provider.Applications.Application
-
         schema "oauth_applications" do
           belongs_to :owner, MyApp.Users.User
-
           application_fields()
-
           timestamps()
         end
       end
@@ -42,18 +31,18 @@ defmodule ExOauth2Provider.Applications.Application do
   @doc false
   def attrs() do
     [
-    {:name, :string, [], null: false},
-    {:uid, :string, [], null: false},
-    {:secret, :string, [default: ""], null: false},
-    {:redirect_uri, :string, [], null: false},
-    {:scopes, :string, [default: ""], null: false},
+    {:name, :string},
+    {:uid, :string},
+    {:secret, :string, default: ""},
+    {:redirect_uri, :string},
+    {:scopes, :string, default: ""},
+    {:owner_id, :string}
     ]
   end
 
   @doc false
   def assocs() do
     [
-      {:belongs_to, :owner, :users},
       {:has_many, :access_tokens, :access_tokens, foreign_key: :application_id}
     ]
   end
@@ -115,7 +104,6 @@ defmodule ExOauth2Provider.Applications.Application do
     |> put_uid()
     |> put_secret()
     |> Scopes.put_scopes(nil, config)
-    |> Changeset.assoc_constraint(:owner)
   end
 
   defp validate_redirect_uri(changeset, config) do
