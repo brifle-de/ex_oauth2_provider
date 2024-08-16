@@ -21,8 +21,6 @@ defmodule ExOauth2Provider.Scopes do
 
   defp match_scope?(available_scope, scope) do
     scope_regex = buildScopeRegex(available_scope)
-    IO.inspect(scope_regex)
-    IO.inspect(scope)
     Regex.match?(scope_regex, scope)
   end
 
