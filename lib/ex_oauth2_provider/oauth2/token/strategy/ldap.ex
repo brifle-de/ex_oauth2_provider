@@ -114,12 +114,19 @@ defmodule ExOauth2Provider.Token.Ldap do
   defp validate_scopes({:ok, %{request: %{"scope" => scopes}, client: client} = params}, config) do
     scopes = Scopes.to_list(scopes)
 
+    available_scopes = case Config.get_available_scopes_builder(config) do
+      nil -> []
+      builder -> builder.all()
+    end
+
     server_scopes =
       client.scopes
       |> Scopes.to_list()
       |> Scopes.default_to_server_scopes(config)
 
-    case Scopes.all?(server_scopes, scopes) do
+    all_scopes = available_scopes ++ server_scopes
+
+    case Scopes.all?(all_scopes, scopes) do
       true -> {:ok, params}
       false -> Error.add_error({:ok, params}, Error.invalid_scopes())
     end

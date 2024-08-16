@@ -180,4 +180,14 @@ defmodule ExOauth2Provider.Config do
   end
 
   defp get_from_global_env(value, _key), do: value
+
+
+  @doc """
+  gets the builder module for the available scopes
+  """
+  def get_available_scopes_builder(config) do
+    config
+    |> get(:available_scopes_builder)
+  end
+
 end

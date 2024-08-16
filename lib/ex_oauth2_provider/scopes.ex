@@ -10,7 +10,27 @@ defmodule ExOauth2Provider.Scopes do
   """
   @spec all?([binary()], [binary()]) :: boolean()
   def all?(scopes, required_scopes) do
-    (required_scopes -- scopes) == []
+    # remove scopes matching exacly the required scopes
+    exact_match = (required_scopes -- scopes)
+    # scopes with placeholders
+    exact_match
+    |> Enum.filter(fn scope ->
+      !Enum.any?(scopes, &match_scope?(&1, scope))
+    end) == []
+  end
+
+  defp match_scope?(available_scope, scope) do
+    scope_regex = buildScopeRegex(available_scope)
+    IO.inspect(scope_regex)
+    IO.inspect(scope)
+    Regex.match?(scope_regex, scope)
+  end
+
+  defp buildScopeRegex(scope) do
+    scope
+    |> String.replace(".", "\\.")
+    |> String.replace("*", "[^.]*")
+    |> Regex.compile!()
   end
 
   @doc """
