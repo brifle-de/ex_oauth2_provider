@@ -19,7 +19,7 @@ defmodule ExOauth2Provider.Mixin.Scopes do
   def validate_scopes(changeset, "", config), do: validate_scopes(changeset, nil, config)
   def validate_scopes(changeset, server_scopes, config) do
     server_scopes = permitted_scopes(server_scopes, config)
-    available_scopes = case Config.get_available_scopes_builder() do
+    available_scopes = case Config.get_available_scopes_builder(config) do
       nil -> []
       builder -> builder.all()
     end
