@@ -10,13 +10,14 @@ defmodule ExOauth2Provider.Scopes do
   """
   @spec all?([binary()], [binary()]) :: boolean()
   def all?(scopes, required_scopes) do
-    # remove scopes matching exacly the required scopes
-    exact_match = (required_scopes -- scopes)
     # scopes with placeholders
-    exact_match
+    res = required_scopes
     |> Enum.filter(fn scope ->
       !Enum.any?(scopes, &match_scope?(&1, scope))
-    end) == []
+    end)
+
+
+    res == []
   end
 
   defp match_scope?(available_scope, scope) do
@@ -25,7 +26,7 @@ defmodule ExOauth2Provider.Scopes do
   end
 
   defp buildScopeRegex(scope) do
-    scope
+    "^#{scope}$"
     |> String.replace(".", "\\.")
     |> String.replace("*", "[^.]*")
     |> Regex.compile!()
