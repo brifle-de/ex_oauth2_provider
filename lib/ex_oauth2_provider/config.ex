@@ -117,6 +117,9 @@ defmodule ExOauth2Provider.Config do
   def password_cert_auth(config),
     do: get(config, :password_cert_auth)
 
+  def ldap_auth(config),
+    do: get(config, :ldap_auth)
+
   def api_key_auth(config),
     do: get(config, :api_key_auth)
 

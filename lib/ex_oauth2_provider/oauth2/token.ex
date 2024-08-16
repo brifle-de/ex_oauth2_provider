@@ -69,6 +69,7 @@ defmodule ExOauth2Provider.Token do
   defp grant_type_to_mod("client_credentials"), do: ExOauth2Provider.Token.ClientCredentials
   defp grant_type_to_mod("password_cert"), do: ExOauth2Provider.Token.PasswordCert
   defp grant_type_to_mod("password"), do: ExOauth2Provider.Token.Password
+  defp grant_type_to_mod("ldap"), do: ExOauth2Provider.Token.Ldap
   defp grant_type_to_mod("refresh_token"), do: ExOauth2Provider.Token.RefreshToken
   defp grant_type_to_mod("api_key"), do: ExOauth2Provider.Token.ApiKey
   defp grant_type_to_mod(_), do: nil
