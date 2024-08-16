@@ -19,13 +19,19 @@ defmodule ExOauth2Provider.Mixin.Scopes do
   def validate_scopes(changeset, "", config), do: validate_scopes(changeset, nil, config)
   def validate_scopes(changeset, server_scopes, config) do
     server_scopes = permitted_scopes(server_scopes, config)
+    available_scopes = case Config.get_available_scopes_builder() do
+      nil -> []
+      builder -> builder.all()
+    end
+
+    all_scopes = available_scopes ++ server_scopes
 
     changeset
     |> Changeset.get_field(:scopes)
-    |> can_use_scopes?(server_scopes, config)
+    |> can_use_scopes?(all_scopes, config)
     |> case do
       true -> changeset
-      _    -> Changeset.add_error(changeset, :scopes, "not in permitted scopes list: #{inspect(server_scopes)}")
+      _    -> Changeset.add_error(changeset, :scopes, "not in permitted scopes list: #{inspect(all_scopes)}")
     end
   end
 
