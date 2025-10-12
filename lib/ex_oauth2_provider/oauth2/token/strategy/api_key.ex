@@ -33,7 +33,6 @@ defmodule ExOauth2Provider.Token.ApiKey do
     |> load_resource_owner()
     |> Utils.load_client(config)
     |> set_defaults()
-    |> validate_scopes(config)
     |> issue_access_token(config)
     |> Response.response(config)
   end
@@ -51,10 +50,13 @@ defmodule ExOauth2Provider.Token.ApiKey do
          {:ok,
           %{
             api_key_auth: {module, method},
-            request: %{"key" => key, "secret" => secret}
+            request: %{"key" => key, "secret" => secret} = request
           } = params}
        ) do
-    case apply(module, method, [key, secret]) do
+
+    scope = Map.get(request, "scope", "")
+
+    case apply(module, method, [key, secret, scope]) do
       {:ok, resource_owner} ->
         {:ok, Map.put(params, :resource_owner, resource_owner)}
 
