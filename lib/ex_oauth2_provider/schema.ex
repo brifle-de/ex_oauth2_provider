@@ -6,17 +6,6 @@ defmodule ExOauth2Provider.Schema do
   alias ExOauth2Provider.Config
 
   defmacro __using__(config \\ []) do
-
-    # load config at runtime
-    run_conf_module = Keyword.get(config, :config)
-
-    config = case run_conf_module do
-      nil -> config
-      _ ->
-        run_config = Application.get_env(config.otp_app, run_conf_module, [])
-        Keyword.merge(config, run_config)
-    end
-
     quote do
       @config unquote(config)
     end
