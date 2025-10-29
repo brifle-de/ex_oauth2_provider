@@ -163,9 +163,12 @@ defmodule ExOauth2Provider.Config do
     end
   end
 
+
   defp from_module_config(:not_found, otp_app, config_module, key), do: Application.get_env(otp_app, config_module, []) |> Keyword.get(key, :not_found)
+  defp from_module_config(value, _otp_app, _config_module, _key), do: value
 
   defp get_from_config(config, key), do: Keyword.get(config, key, :not_found)
+
 
   defp get_from_app_env(:not_found, nil, _key), do: :not_found
 
