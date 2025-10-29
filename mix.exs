@@ -1,7 +1,7 @@
 defmodule ExOauth2Provider.Mixfile do
   use Mix.Project
 
-  @version "v0.8.0"
+  @version "0.8.0"
 
   def project do
     [
