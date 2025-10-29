@@ -150,9 +150,11 @@ defmodule ExOauth2Provider.Config do
 
   defp get(config, key, value \\ nil) do
     otp_app = Keyword.get(config, :otp_app)
+    config_module = Keyword.get(config, :config)
 
     config
     |> get_from_config(key)
+    |> from_module_config(otp_app, config_module, key)
     |> get_from_app_env(otp_app, key)
     |> get_from_global_env(key)
     |> case do
@@ -160,6 +162,8 @@ defmodule ExOauth2Provider.Config do
       value -> value
     end
   end
+
+  defp from_module_config(:not_found, otp_app, key), do: Application.get_env(otp_app, config_module, []) |> Keyword.get(key, :not_found)
 
   defp get_from_config(config, key), do: Keyword.get(config, key, :not_found)
 
